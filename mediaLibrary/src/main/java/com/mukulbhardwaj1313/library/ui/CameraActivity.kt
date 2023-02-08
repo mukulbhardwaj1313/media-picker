@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,6 +19,7 @@ import androidx.camera.video.*
 import androidx.camera.video.VideoCapture
 import androidx.core.content.ContextCompat
 import com.mukulbhardwaj1313.library.databinding.ActivityCameraBinding
+import com.mukulbhardwaj1313.library.utils.FileHandler.createNewFile
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
@@ -30,6 +32,7 @@ class CameraActivity : AppCompatActivity() {
     private var recording: Recording? = null
 
     private lateinit var type :String
+    private lateinit var mediaOption: MediaOption
     private var openFrontCamera : Boolean = false
     private lateinit var binding : ActivityCameraBinding
 
@@ -39,18 +42,18 @@ class CameraActivity : AppCompatActivity() {
         private const val VIDEO_CAPTURE="VIDEO_CAPTURE"
         private const val CAMERA_CAPTURE="CAMERA_CAPTURE"
         private const val TAG = "CameraActivity"
-        private var duration:Long = 0
+        private const val MEDIA_OPTION ="MEDIA_OPTION"
 
 
-        fun startPhoto(activity: AppCompatActivity, activityResult: ActivityResultLauncher<Intent>, openFrontCamera: Boolean){
-            activityResult.launch(Intent(activity,CameraActivity::class.java).putExtra(TYPE, CAMERA_CAPTURE).putExtra(FRONT_CAMERA_ENABLED,openFrontCamera))
+        fun startPhoto(activity: AppCompatActivity, activityResult: ActivityResultLauncher<Intent>, openFrontCamera: Boolean, mediaOption: MediaOption){
+            activityResult.launch(Intent(activity,CameraActivity::class.java).putExtra(TYPE, CAMERA_CAPTURE).putExtra(MEDIA_OPTION,mediaOption).putExtra(FRONT_CAMERA_ENABLED,openFrontCamera))
         }
-        fun startVideo(activity: AppCompatActivity, activityResult: ActivityResultLauncher<Intent>, duration:Long = 20000){
-            this.duration = duration
-            activityResult.launch(Intent(activity,CameraActivity::class.java).putExtra(TYPE, VIDEO_CAPTURE))
+        fun startVideo(activity: AppCompatActivity, activityResult: ActivityResultLauncher<Intent>, mediaOption: MediaOption){
+            activityResult.launch(Intent(activity,CameraActivity::class.java).putExtra(TYPE, VIDEO_CAPTURE).putExtra(MEDIA_OPTION,mediaOption))
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,6 +62,11 @@ class CameraActivity : AppCompatActivity() {
 
         type= if(intent.getStringExtra(TYPE) ==null) CAMERA_CAPTURE else intent.getStringExtra(TYPE)!!
         openFrontCamera=  intent.getBooleanExtra(FRONT_CAMERA_ENABLED,false)
+        mediaOption = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(MEDIA_OPTION,MediaOption::class.java)!!
+        }else{
+             intent.getParcelableExtra(MEDIA_OPTION)!!
+        }
 
         binding.videoProgress.visibility= View.GONE
         startPreview()
@@ -139,7 +147,7 @@ class CameraActivity : AppCompatActivity() {
         val quality = if (bitmap.byteCount > 5145728) 50 else 80
         resizedSignature.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
 
-        val myFile = MediaPicker.createNewFile(this)
+        val myFile = createNewFile(this)
         val fos = FileOutputStream(myFile)
         Log.d(TAG, "imageProxyToFile: ${myFile.path}")
         fos.write(byteArrayOutputStream.toByteArray())
@@ -164,7 +172,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
 
-        val myFile = MediaPicker.createNewFile(this,true)
+        val myFile = createNewFile(this, isVideo = true, name = mediaOption.name)
 
         val fos = FileOutputOptions.Builder(myFile).build()
 
@@ -201,7 +209,7 @@ class CameraActivity : AppCompatActivity() {
                 recording?.stop()
                 recording?.close()
                 recording = null
-            }, duration)
+            }, mediaOption.duration)
     }
 
 

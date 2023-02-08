@@ -9,14 +9,13 @@ import kotlinx.android.parcel.Parcelize
 data class TrimVideoOptions(
     var trimType:TrimType = TrimType.DEFAULT,
     var minDuration: Long = 0,
+    var maxDuration: Long = 20000,
     var fixedDuration: Long = 0,
     var hideSeekBar:Boolean = false,
     var accurateCut:Boolean = false,
     var showFileLocationAlert:Boolean = false,
     var minToMax: LongArray? = null,
-    var title: String? = null,
     var maxVideoSize:Int = 20,
-    var maxVideoDuration:Int = 20,
     var rotation:Int = 0,                                               //           rotation = 0,   90,   180,   270
     var speed:Float = 1f,                                               //           speed = 0.5F,   1F,   2F
     var channels:Int = DefaultAudioStrategy.CHANNELS_AS_INPUT,          //           channels = 1; //mono,   2; // stereo,        DefaultAudioStrategy.CHANNELS_AS_INPUT

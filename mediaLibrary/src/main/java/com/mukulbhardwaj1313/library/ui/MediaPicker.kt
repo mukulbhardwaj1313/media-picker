@@ -1,7 +1,6 @@
 package com.mukulbhardwaj1313.library.ui
 
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -11,40 +10,45 @@ import android.provider.MediaStore
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.mukulbhardwaj1313.library.utils.FileHandler.createNewFile
 import com.mukulbhardwaj1313.library.utils.TrimVideo
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
 import java.util.*
 
 
 class MediaPicker(private val activity: AppCompatActivity) {
 
     private lateinit var onResultFinalize: OnResultFinalize
+    private lateinit var mediaOption: MediaOption
     private lateinit var source:String
 
     fun interface OnResultFinalize {
         fun onResultFinalize(path: String, source: String, type: String)
     }
 
-    fun actionCameraXPhotoIntent(openFrontCamera : Boolean = false, onResultFinalize: OnResultFinalize){
+    fun actionCameraXPhotoIntent(onResultFinalize: OnResultFinalize, openFrontCamera : Boolean = false, mediaOption: MediaOption= MediaOption()){
         this.onResultFinalize=onResultFinalize
-        CameraActivity.startPhoto(activity, captureImageResultViaCameraX, openFrontCamera)
+        this.mediaOption=mediaOption
+        CameraActivity.startPhoto(activity, captureImageResultViaCameraX, openFrontCamera, mediaOption)
     }
-    fun actionCameraXVideoIntent( onResultFinalize: OnResultFinalize){
+    fun actionCameraXVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption= MediaOption()){
         this.onResultFinalize=onResultFinalize
-        CameraActivity.startVideo(activity, captureVideoResultViaCameraX)
+        this.mediaOption=mediaOption
+        CameraActivity.startVideo(activity, captureVideoResultViaCameraX,mediaOption)
     }
-    fun actionGalleryPhotoIntent( onResultFinalize: OnResultFinalize) {
+    fun actionGalleryPhotoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption= MediaOption()) {
         this.onResultFinalize=onResultFinalize
+        this.mediaOption=mediaOption
         val i = Intent(Intent.ACTION_PICK, null)
         i.type = "image/*"
         galleryImageResult.launch(Intent.createChooser(i, "Select Picture"))
 
     }
-    fun actionGalleryVideoIntent( onResultFinalize: OnResultFinalize) {
+    fun actionGalleryVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption = MediaOption()) {
         this.onResultFinalize=onResultFinalize
+        this.mediaOption=mediaOption
         val i = Intent(Intent.ACTION_PICK, null)
         i.type = "video/*"
         galleryVideoResult.launch(Intent.createChooser(i, "Select Video"))
@@ -86,7 +90,8 @@ class MediaPicker(private val activity: AppCompatActivity) {
         this.source=source
         TrimVideo
             .ActivityBuilder(path)
-            .setMaxVideoSize(8)
+            .setMaxVideoSize(mediaOption.maxVideoSize)
+            .setMaxDuration(mediaOption.duration)
             .setFraction(0.5f)
 //            .setTrimType(TrimType.FIXED_DURATION).setMinToMax(0,15)
             .start(activity, trimVideoResult)
@@ -106,7 +111,7 @@ class MediaPicker(private val activity: AppCompatActivity) {
         val quality = if (bitmap.byteCount > 5145728) 50 else 80
         resizedSignature.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
 
-        val myFile = createNewFile(activity)
+        val myFile = createNewFile(activity, name = mediaOption.name)
         val outputStream = FileOutputStream(myFile)
         outputStream.write(byteArrayOutputStream.toByteArray())
         outputStream.flush()
@@ -116,7 +121,7 @@ class MediaPicker(private val activity: AppCompatActivity) {
     }
 
     private fun contentUriToVideoFile(uri: Uri): File {
-        val myFile = createNewFile(activity,true)
+        val myFile = createNewFile(activity, isVideo = true, name = mediaOption.name)
         val inputStream = activity.contentResolver.openInputStream(uri)
         val myOutputStream = FileOutputStream(myFile)
         val maxBufferSize = 1 * 1024 * 1024
@@ -131,46 +136,6 @@ class MediaPicker(private val activity: AppCompatActivity) {
         myOutputStream.close()
 
         return myFile
-    }
-
-    fun getAllSavedFiles():List<String>{
-        val fileList = File(getAttachmentDir(activity).path).listFiles()
-        val list = ArrayList<String>()
-        if (fileList!=null && fileList.isNotEmpty()){
-            fileList.iterator().forEach {
-                list.add(it.path)
-            }
-        }
-        return list
-    }
-
-    fun deleteFile(path: String){
-        val file = File(path)
-        if (file.exists()) {
-            if (file.delete()) {
-                println("file Deleted :" + file.path)
-            } else {
-                println("file not Deleted :" + file.path)
-            }
-        }
-    }
-
-    companion object{
-        fun getAttachmentDir(context: Context): File {
-            return context.getDir("attachment", AppCompatActivity.MODE_PRIVATE)
-        }
-        fun createNewFile(context: Context, isVideo: Boolean = false): File {
-
-
-            val name = SimpleDateFormat(
-                "yyyyMMdd_HHmmss",
-                Locale.getDefault()
-            ).format(System.currentTimeMillis())
-            val ext = if (isVideo) ".mp4" else ".jpg"
-
-            return File(getAttachmentDir(context), name+ext)
-//            return File.createTempFile(name, ext)
-        }
     }
 
 }

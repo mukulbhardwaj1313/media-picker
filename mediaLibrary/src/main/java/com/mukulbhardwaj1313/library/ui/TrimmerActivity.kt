@@ -1,5 +1,6 @@
 package com.mukulbhardwaj1313.library.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.*
@@ -54,6 +55,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     private lateinit var imageViews: Array<ImageView>
     private lateinit var uri: Uri
     private lateinit var txtStartDuration: TextView
+    private lateinit var txtTotalDuration: TextView
     private lateinit var txtEndDuration: TextView
     private lateinit var seekbar: CrystalRangeSeekbar
     private lateinit var seekbarController: CrystalSeekbar
@@ -76,8 +78,6 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     private var maxToGap: Long = 0
     private var hidePlayerSeek = false
     private var mTranscodeFuture: Future<Void>? = null
-    private var minVal: Long = 0
-    private var maxVal: Long = 0
     private var count = 0
 
 
@@ -133,6 +133,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
         imagePlayPause = findViewById(R.id.image_play_pause)
         seekbar = findViewById(R.id.range_seek_bar)
         txtStartDuration = findViewById(R.id.txt_start_duration)
+        txtTotalDuration = findViewById(R.id.txt_total_duration)
         donebtn = findViewById(R.id.done_btn)
         txtEndDuration = findViewById(R.id.txt_end_duration)
         seekbarController = findViewById(R.id.seekbar_controller)
@@ -156,7 +157,11 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             //preventing multiple clicks
             if (SystemClock.elapsedRealtime() - lastClickedTime >= 800) {
                 lastClickedTime = SystemClock.elapsedRealtime()
-                transcode()
+                if (totalDuration>trimVideoOptions.maxDuration/1000){
+                    Toast.makeText(this, "Video must be less than ${trimVideoOptions.maxDuration/1000} seconds", Toast.LENGTH_SHORT).show()
+                }else{
+                    transcode()
+                }
             }
         }
     }
@@ -171,10 +176,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             .build()
         videoPlayer.setAudioAttributes(audioAttributes, true)
         totalDuration = TrimmerUtils.getDuration(this@TrimmerActivity, uri)
-        if (totalDuration>trimVideoOptions.maxVideoDuration){
-            Toast.makeText(this, "Video must be less than ${trimVideoOptions.maxVideoDuration} seconds", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+
         imagePlayPause.setOnClickListener { onVideoClicked() }
         playerView.videoSurfaceView!!.setOnClickListener { onVideoClicked() }
 
@@ -273,9 +275,11 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setUpSeekBar() {
         seekbar.visibility = View.VISIBLE
         txtStartDuration.visibility = View.VISIBLE
+        txtTotalDuration.visibility = View.VISIBLE
         txtEndDuration.visibility = View.VISIBLE
         seekbarController.setMaxValue(totalDuration.toFloat()).apply()
         seekbar.setMaxValue(totalDuration.toFloat()).apply()
@@ -313,8 +317,10 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             }
             lastMinValue = minVal
             lastMaxValue = maxVal
+            totalDuration=(maxVal-minVal)
             txtStartDuration.text = TrimmerUtils.formatSeconds(minVal)
             txtEndDuration.text = TrimmerUtils.formatSeconds(maxVal)
+            txtTotalDuration.text = "Duration : ${TrimmerUtils.formatSeconds(maxVal-minVal)}"
             if (trimType == 3) setDoneColor(minVal, maxVal)
         }
         seekbarController.setOnSeekbarFinalValueListener { value: Number ->
@@ -323,11 +329,13 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
                 seekTo(value1)
                 return@setOnSeekbarFinalValueListener
             }
-            if (value1 > lastMaxValue) seekbarController.setMinStartValue(
-                lastMaxValue.toInt().toFloat()
-            ).apply() else if (value1 < lastMinValue) {
+            if (value1 > lastMaxValue) {
+                seekbarController.setMinStartValue(lastMaxValue.toInt().toFloat()).apply()
+            }
+            else if (value1 < lastMinValue) {
                 seekbarController.setMinStartValue(lastMinValue.toInt().toFloat()).apply()
-                if (videoPlayer.playWhenReady) seekTo(lastMinValue)
+                if (videoPlayer.playWhenReady)
+                    seekTo(lastMinValue)
             }
         }
     }
@@ -418,7 +426,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
         mTranscodeOutputFile = File(cacheDir, count.toString() + "_abc.mp4")
         val builder = Transcoder.into(mTranscodeOutputFile.absolutePath)
         val dataSource = UriDataSource(this, uriToParse!!)
-        val trimDataSource = TrimDataSource(dataSource, minVal, maxVal)
+        val trimDataSource = TrimDataSource(dataSource, lastMinValue, lastMaxValue)
         builder.addDataSource(trimDataSource)
         count++
 

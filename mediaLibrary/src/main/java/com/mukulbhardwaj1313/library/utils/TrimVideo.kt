@@ -48,6 +48,11 @@ object TrimVideo {
             return this
         }
 
+        fun setMaxDuration(maxDuration: Long): ActivityBuilder {
+            options.maxDuration = maxDuration
+            return this
+        }
+
         fun setFixedDuration(fixedDuration: Long): ActivityBuilder {
             options.fixedDuration = fixedDuration
             return this
@@ -68,10 +73,6 @@ object TrimVideo {
             return this
         }
 
-        fun setTitle(title: String): ActivityBuilder {
-            options.title = title
-            return this
-        }
 
         fun start(activity: Activity, launcher: ActivityResultLauncher<Intent?>) {
             validate()

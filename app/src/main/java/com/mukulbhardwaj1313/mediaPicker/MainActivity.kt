@@ -11,8 +11,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mediaPicker.actionCameraXPhotoIntent{ path, source, type ->
-            Log.d(TAG, "onCreate: $path $source $type")
-        }
+        mediaPicker.actionGalleryVideoIntent({ path, source, type ->
+            Log.w(TAG, "onCreate: $path $source $type")
+        })
     }
 }
