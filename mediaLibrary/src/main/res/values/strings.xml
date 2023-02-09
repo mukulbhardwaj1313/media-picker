@@ -1,4 +1,5 @@
 <resources>
     <string name="txt_done">Done</string>
+    <string name="processing_video">Processing Video...</string>
 
 </resources>
