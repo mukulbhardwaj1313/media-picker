@@ -65,7 +65,8 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     private lateinit var mTranscodeOutputFile: File
     private lateinit var donebtn:Button
 
-    private var totalDuration: Long = 0
+    private var trimmedDuration: Long = 0
+    private var totalduration: Long = 0
     private var lastMinValue: Long = 0
     private var lastMaxValue: Long = 0
     private var isVideoEnded = false
@@ -83,7 +84,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
 
 
 
-//    private lateinit var menuDone: MenuItem
+    //    private lateinit var menuDone: MenuItem
     private var isValidVideo = true
     private val seekHandler: Handler = Handler(Looper.myLooper()!!)
 
@@ -157,7 +158,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             //preventing multiple clicks
             if (SystemClock.elapsedRealtime() - lastClickedTime >= 800) {
                 lastClickedTime = SystemClock.elapsedRealtime()
-                if (totalDuration>trimVideoOptions.maxDuration/1000){
+                if (trimmedDuration>trimVideoOptions.maxDuration/1000){
                     Toast.makeText(this, "Video must be less than ${trimVideoOptions.maxDuration/1000} seconds", Toast.LENGTH_SHORT).show()
                 }else{
                     transcode()
@@ -175,8 +176,8 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
         videoPlayer.setAudioAttributes(audioAttributes, true)
-        totalDuration = TrimmerUtils.getDuration(this@TrimmerActivity, uri)
-
+        trimmedDuration = TrimmerUtils.getDuration(this@TrimmerActivity, uri)
+        totalduration=trimmedDuration
         imagePlayPause.setOnClickListener { onVideoClicked() }
         playerView.videoSurfaceView!!.setOnClickListener { onVideoClicked() }
 
@@ -187,14 +188,14 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
         trimType = TrimmerUtils.getTrimType(trimVideoOptions.trimType)
         hidePlayerSeek = trimVideoOptions.hideSeekBar
         fixedGap = trimVideoOptions.fixedDuration
-        fixedGap = if (fixedGap != 0L) fixedGap else totalDuration
+        fixedGap = if (fixedGap != 0L) fixedGap else trimmedDuration
         minGap = trimVideoOptions.minDuration
-        minGap = if (minGap != 0L) minGap else totalDuration
+        minGap = if (minGap != 0L) minGap else trimmedDuration
         if (trimType == 3) {
             minFromGap = trimVideoOptions.minToMax!![0]
             maxToGap = trimVideoOptions.minToMax!![1]
-            minFromGap = if (minFromGap != 0L) minFromGap else totalDuration
-            maxToGap = if (maxToGap != 0L) maxToGap else totalDuration
+            minFromGap = if (minFromGap != 0L) minFromGap else trimmedDuration
+            maxToGap = if (maxToGap != 0L) maxToGap else trimmedDuration
         }
 
     }
@@ -258,7 +259,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
      * */
     private fun loadThumbnails() {
         try {
-            val diff = totalDuration / imageViews.size
+            val diff = trimmedDuration / imageViews.size
             var sec = 1
             for (img in imageViews) {
                 val interval = diff * sec * 1000000
@@ -268,7 +269,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
                     .apply(options)
                     .transition(DrawableTransitionOptions.withCrossFade(300))
                     .into(img)
-                if (sec < totalDuration) sec++
+                if (sec < trimmedDuration) sec++
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -281,18 +282,18 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
         txtStartDuration.visibility = View.VISIBLE
         txtTotalDuration.visibility = View.VISIBLE
         txtEndDuration.visibility = View.VISIBLE
-        seekbarController.setMaxValue(totalDuration.toFloat()).apply()
-        seekbar.setMaxValue(totalDuration.toFloat()).apply()
-        seekbar.setMaxStartValue(totalDuration.toFloat()).apply()
+        seekbarController.setMaxValue(trimmedDuration.toFloat()).apply()
+        seekbar.setMaxValue(trimmedDuration.toFloat()).apply()
+        seekbar.setMaxStartValue(trimmedDuration.toFloat()).apply()
         lastMaxValue = when (trimType) {
             1 -> {
                 seekbar.setFixGap(fixedGap.toFloat()).apply()
-                totalDuration
+                trimmedDuration
             }
             2 -> {
                 seekbar.setMaxStartValue(minGap.toFloat())
                 seekbar.setGap(minGap.toFloat()).apply()
-                totalDuration
+                trimmedDuration
             }
             3 -> {
                 seekbar.setMaxStartValue(maxToGap.toFloat())
@@ -301,7 +302,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             }
             else -> {
                 seekbar.setGap(2f).apply()
-                totalDuration
+                trimmedDuration
             }
         }
         if (hidePlayerSeek) seekbarController.visibility = View.GONE
@@ -317,7 +318,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
             }
             lastMinValue = minVal
             lastMaxValue = maxVal
-            totalDuration=(maxVal-minVal)
+            trimmedDuration=(maxVal-minVal)
             txtStartDuration.text = TrimmerUtils.formatSeconds(minVal)
             txtEndDuration.text = TrimmerUtils.formatSeconds(maxVal)
             txtTotalDuration.text = "Duration : ${TrimmerUtils.formatSeconds(maxVal-minVal)}"
@@ -350,15 +351,9 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     private fun setDoneColor(minVal: Long, maxVal: Long) {
         try {
             if (maxVal - minVal <= maxToGap) {
-//                menuDone.icon!!.colorFilter = PorterDuffColorFilter(
-//                    ContextCompat.getColor(this, R.color.colorWhite), PorterDuff.Mode.SRC_IN
-//                )
                 isValidVideo = true
                 donebtn.setBackgroundColor(resources.getColor(R.color.colorWhite))
             } else {
-//                menuDone.icon!!.colorFilter = PorterDuffColorFilter(
-//                    ContextCompat.getColor(this, R.color.colorWhiteLt), PorterDuff.Mode.SRC_IN
-//                )
                 isValidVideo = false
                 donebtn.setBackgroundColor(resources.getColor(R.color.colorWhiteLt))
             }
@@ -415,40 +410,49 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     }
 
     override fun onTranscodeCanceled() {}
-    override fun onTranscodeFailed(exception: Throwable) { Log.e(TAG, "onTranscodeFailed: ", exception) }
+    override fun onTranscodeFailed(exception: Throwable) {
+        progressBar.visibility =View.GONE
+        Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
+        Log.e(TAG, "onTranscodeFailed: ", exception)
+    }
 
     private fun transcode() {
         videoPlayer.playWhenReady =false
         progressBar.visibility =View.VISIBLE
-        val uriToParse = if (count == 0) uri else Uri.parse(
-            mTranscodeOutputFile.path
-        )
+        val uriToParse:Uri
+        val trimDataSource : TrimDataSource
+        if (count == 0) {
+            uriToParse= uri
+            trimDataSource = TrimDataSource(UriDataSource(this, uriToParse), lastMinValue*1000000, (totalduration-lastMaxValue)*1000000)
+        }else {
+            uriToParse = Uri.parse(mTranscodeOutputFile.path)
+            trimDataSource = TrimDataSource(UriDataSource(this, uriToParse), 0) }
+
+
         mTranscodeOutputFile = File(cacheDir, count.toString() + "_abc.mp4")
         val builder = Transcoder.into(mTranscodeOutputFile.absolutePath)
-        val dataSource = UriDataSource(this, uriToParse!!)
-        val trimDataSource = TrimDataSource(dataSource, lastMinValue, lastMaxValue)
-        builder.addDataSource(trimDataSource)
-        count++
 
 
-
- val mTranscodeAudioStrategy: TrackStrategy                   //           mTranscodeAudioStrategy = new RemoveTrackStrategy();  // to remove video
-        mTranscodeAudioStrategy = DefaultAudioStrategy.builder()
+        val mTranscodeAudioStrategy = DefaultAudioStrategy.builder()      //           mTranscodeAudioStrategy = new RemoveTrackStrategy();  // to remove video
             .channels(trimVideoOptions.channels)
             .sampleRate(trimVideoOptions.sampleRate)
             .build()
         val mTranscodeVideoStrategy: TrackStrategy = DefaultVideoStrategy.Builder()
             .addResizer(if (trimVideoOptions.aspectRatio > 0) AspectRatioResizer(trimVideoOptions.aspectRatio) else PassThroughResizer())
             .addResizer(FractionResizer(trimVideoOptions.fraction))
-            .frameRate(trimVideoOptions.frames) // .keyFrameInterval(4F)
+            .frameRate(trimVideoOptions.frames)                            // .keyFrameInterval(4F)
             .build()
         mTranscodeFuture = builder.setListener(this)
             .setAudioTrackStrategy(mTranscodeAudioStrategy)
             .setVideoTrackStrategy(mTranscodeVideoStrategy)
+            .addDataSource(trimDataSource)
             .setVideoRotation(trimVideoOptions.rotation)
             .setValidator(object : DefaultValidator() {})
             .setSpeed(trimVideoOptions.speed)
             .transcode()
+
+        count++
+
     }
 
     private lateinit var alert:AlertDialog

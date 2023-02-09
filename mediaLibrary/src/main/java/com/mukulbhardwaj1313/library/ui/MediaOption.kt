@@ -5,9 +5,24 @@ import android.os.Parcelable
 
 class MediaOption() :Parcelable {
 
-    var maxVideoSize: Int = 20
-    var duration: Long = 20000
+    var maxVideoSize: Int = 2000
+    var duration: Long = 2000000
     var name :String? = null
+
+    fun setMaxVideoSize(maxVideoSize: Int): MediaOption {
+        this.maxVideoSize = maxVideoSize
+        return this
+    }
+
+    fun setDuration(duration: Long): MediaOption {
+        this.duration = duration
+        return this
+    }
+
+    fun setName(name: String?): MediaOption {
+        this.name = name
+        return this
+    }
 
     constructor(parcel: Parcel) : this() {
         duration = parcel.readLong()
