@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
+    id 'maven-publish'
 }
 
 android {
@@ -62,4 +63,22 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.13.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
+}
+
+afterEvaluate{
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId = "https://github.com/mukulbhardwaj1313"
+                artifactId = "https://github.com/mukulbhardwaj1313/media-picker"
+                version = "1.0.0"
+
+                afterEvaluate {
+                    from(components["release"])
+                }
+            }
+        }
+    }
+
+
 }
