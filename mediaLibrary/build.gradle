@@ -69,13 +69,11 @@ afterEvaluate{
     publishing {
         publications {
             release(MavenPublication) {
-                groupId = "https://github.com/mukulbhardwaj1313"
-                artifactId = "https://github.com/mukulbhardwaj1313/media-picker"
-                version = "1.0.0"
+                from components.release
 
-                afterEvaluate {
-                    from(components["release"])
-                }
+                groupId = "com.mukulbhardwaj1313"
+                artifactId = "library"
+                version = "1.0.0"
             }
         }
     }
