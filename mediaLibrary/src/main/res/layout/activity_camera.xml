@@ -32,6 +32,14 @@
         android:layout_height="90dp"/>
 
 
+    <TextView
+        android:textColor="@color/colorWhite"
+        android:id="@+id/durationTime"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 
 </RelativeLayout>

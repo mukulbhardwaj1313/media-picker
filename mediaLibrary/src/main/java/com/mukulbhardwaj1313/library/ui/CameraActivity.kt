@@ -1,13 +1,11 @@
 package com.mukulbhardwaj1313.library.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -172,6 +170,17 @@ class CameraActivity : AppCompatActivity() {
         }
 
 
+        val timer = object : CountDownTimer(mediaOption.duration, 1000) {
+            @SuppressLint("SetTextI18n")
+            override fun onTick(millisUntilFinished: Long) {
+                binding.durationTime.text = "Remaining time : ${millisUntilFinished/1000} seconds"
+            }
+
+            override fun onFinish() {
+            }
+        }.start()
+
+
         val myFile = createNewFile(this, isVideo = true, name = mediaOption.name)
 
         val fos = FileOutputOptions.Builder(myFile).build()
@@ -181,11 +190,14 @@ class CameraActivity : AppCompatActivity() {
             .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
                 when(recordEvent) {
                     is VideoRecordEvent.Start -> {
+                        binding.durationTime.visibility = View.VISIBLE
                         binding.videoProgress.visibility= View.VISIBLE
                         Toast.makeText(baseContext, "Video recording started", Toast.LENGTH_SHORT).show()
 
                     }
                     is VideoRecordEvent.Finalize -> {
+                        timer.cancel()
+                        binding.durationTime.visibility = View.GONE
                         binding.videoProgress.visibility= View.GONE
                         if (!recordEvent.hasError()) {
                             val msg = "Video captured"
