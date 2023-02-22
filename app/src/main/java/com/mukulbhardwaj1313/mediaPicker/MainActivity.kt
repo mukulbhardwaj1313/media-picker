@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                     mediaPicker.actionGalleryVideoIntent({ path, source, type ->
                         Toast.makeText(this, "onCreate: $path $source $type", Toast.LENGTH_SHORT).show()
                         Log.w(TAG, "onCreate: $path $source $type")
-                    },mediaOption = MediaOption().setDuration(160000).setMaxVideoSize(25))
+                    },mediaOption = MediaOption().setDuration(25000).setMaxVideoSize(25))
                 }
             }
         }

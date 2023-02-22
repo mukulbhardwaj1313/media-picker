@@ -47,11 +47,11 @@ android {
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
-    implementation 'com.otaliastudios:transcoder:0.10.4'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.3'
+    implementation 'com.otaliastudios:transcoder:0.10.5'
 
 
     implementation 'androidx.camera:camera-lifecycle:1.2.1'
