@@ -412,7 +412,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     override fun onTranscodeCanceled() {}
     override fun onTranscodeFailed(exception: Throwable) {
         progressBar.visibility =View.GONE
-        Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, if (exception.message != null) exception.message else "Some error occurred", Toast.LENGTH_SHORT).show()
         Log.e(TAG, "onTranscodeFailed: ", exception)
     }
 
