@@ -70,13 +70,18 @@ object FileHandler {
 
 
     fun contentUriToImageFile(context: Context,uri: Uri, name:String?): File {
-        val bitmap =  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
 
+        val bitmap = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+            }
+        }catch (e:java.lang.Exception){
+            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+
+        }
         val byteArrayOutputStream = ByteArrayOutputStream()
         val resizedSignature: Bitmap = Bitmap.createBitmap(bitmap)
         val quality = if (bitmap.byteCount > 5145728) 50 else 80

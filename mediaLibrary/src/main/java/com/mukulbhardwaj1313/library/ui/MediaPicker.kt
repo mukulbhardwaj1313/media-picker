@@ -20,17 +20,17 @@ class MediaPicker(private val activity: AppCompatActivity) {
         fun onResultFinalize(path: String, source: String, type: String)
     }
 
-    fun actionCameraXPhotoIntent(onResultFinalize: OnResultFinalize, openFrontCamera : Boolean = false, mediaOption: MediaOption= MediaOption()){
+    fun actionCameraXPhotoIntent(onResultFinalize: OnResultFinalize, openFrontCamera : Boolean = false, mediaOption: MediaOption){
         this.onResultFinalize=onResultFinalize
         this.mediaOption=mediaOption
         CameraActivity.startPhoto(activity, captureImageResultViaCameraX, openFrontCamera, mediaOption)
     }
-    fun actionCameraXVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption= MediaOption()){
+    fun actionCameraXVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption){
         this.onResultFinalize=onResultFinalize
         this.mediaOption=mediaOption
         CameraActivity.startVideo(activity, captureVideoResultViaCameraX,mediaOption)
     }
-    fun actionGalleryPhotoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption= MediaOption()) {
+    fun actionGalleryPhotoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption) {
         this.onResultFinalize=onResultFinalize
         this.mediaOption=mediaOption
         val i = Intent(Intent.ACTION_PICK, null)
@@ -38,7 +38,7 @@ class MediaPicker(private val activity: AppCompatActivity) {
         galleryImageResult.launch(Intent.createChooser(i, "Select Picture"))
 
     }
-    fun actionGalleryVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption = MediaOption()) {
+    fun actionGalleryVideoIntent(onResultFinalize: OnResultFinalize, mediaOption: MediaOption) {
         this.onResultFinalize=onResultFinalize
         this.mediaOption=mediaOption
         val i = Intent(Intent.ACTION_PICK, null)
