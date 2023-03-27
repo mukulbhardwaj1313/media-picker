@@ -63,18 +63,34 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
 }
 
-afterEvaluate{
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
 
-                groupId = "com.mukulbhardwaj1313"
-                artifactId = "library"
-                version = "1.0.0"
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "com.mukulbhardwaj1313"
+            artifactId = "library"
+            version = "1.1.1"
+
+            afterEvaluate {
+                from components.release
             }
         }
     }
-
-
 }
+
+
+//afterEvaluate{
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//
+//                groupId = "com.mukulbhardwaj1313"
+//                artifactId = "library"
+//                version = "1.0.0"
+//            }
+//        }
+//    }
+//
+//
+//}
