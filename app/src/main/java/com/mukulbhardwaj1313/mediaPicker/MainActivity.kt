@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
                     mediaPicker.actionCameraXPhotoIntent({ path, source, type ->
                         Toast.makeText(this, "onCreate: $path $source $type", Toast.LENGTH_SHORT).show()
                         Log.w(TAG, "onCreate: $path $source $type")
-                    })
+                    },mediaOption = MediaOption())
                 }
                 1 -> {
                     mediaPicker.actionCameraXVideoIntent({ path, source, type ->
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                     mediaPicker.actionGalleryPhotoIntent({ path, source, type ->
                         Toast.makeText(this, "onCreate: $path $source $type", Toast.LENGTH_SHORT).show()
                         Log.w(TAG, "onCreate: $path $source $type")
-                    })
+                    },mediaOption = MediaOption())
                 }
                 3 -> {
                     mediaPicker.actionGalleryVideoIntent({ path, source, type ->
