@@ -50,14 +50,14 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.18.3'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.5'
     implementation 'com.otaliastudios:transcoder:0.10.5'
 
 
-    implementation 'androidx.camera:camera-lifecycle:1.2.1'
-    implementation "androidx.camera:camera-video:1.2.1"
-    implementation "androidx.camera:camera-view:1.2.1"
-    implementation "androidx.camera:camera-camera2:1.2.1"
+    implementation 'androidx.camera:camera-lifecycle:1.2.2'
+    implementation "androidx.camera:camera-video:1.2.2"
+    implementation "androidx.camera:camera-view:1.2.2"
+    implementation "androidx.camera:camera-camera2:1.2.2"
 
     implementation 'com.github.bumptech.glide:glide:4.13.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
