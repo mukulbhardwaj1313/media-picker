@@ -82,14 +82,11 @@ object FileHandler {
             MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
 
         }
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        val resizedSignature: Bitmap = Bitmap.createBitmap(bitmap)
-        val quality = if (bitmap.byteCount > 5145728) 50 else 80
-        resizedSignature.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
 
         val myFile = createNewFile(context, name = name)
         val outputStream = FileOutputStream(myFile)
-        outputStream.write(byteArrayOutputStream.toByteArray())
+        val quality = if (bitmap.byteCount > 5145728) 50 else 80
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
         outputStream.flush()
         outputStream.close()
 
