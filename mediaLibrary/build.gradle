@@ -52,6 +52,7 @@ dependencies {
 
     implementation 'com.google.android.exoplayer:exoplayer:2.19.0'
     implementation 'com.otaliastudios:transcoder:0.10.5'
+    implementation 'com.linkedin.android.litr:litr:1.5.5'
 
 
     implementation 'androidx.camera:camera-lifecycle:1.2.3'

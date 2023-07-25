@@ -26,6 +26,11 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.linkedin.android.litr.MediaTransformer
+import com.linkedin.android.litr.TransformationListener
+import com.linkedin.android.litr.TransformationOptions
+import com.linkedin.android.litr.analytics.TrackTransformationInfo
+import com.linkedin.android.litr.io.MediaRange
 import com.mukulbhardwaj1313.library.R
 import com.mukulbhardwaj1313.library.ui.seekbar.widgets.CrystalRangeSeekbar
 import com.mukulbhardwaj1313.library.ui.seekbar.widgets.CrystalSeekbar
@@ -44,10 +49,11 @@ import com.otaliastudios.transcoder.strategy.DefaultVideoStrategy
 import com.otaliastudios.transcoder.strategy.TrackStrategy
 import com.otaliastudios.transcoder.validator.DefaultValidator
 import java.io.File
+import java.util.Date
 import java.util.concurrent.Future
 
 private const val TAG = "TrimmerActivity"
-class TrimmerActivity : AppCompatActivity(), TranscoderListener {
+class TrimmerActivity : AppCompatActivity(), TranscoderListener, TransformationListener {
 
     private lateinit var playerView: StyledPlayerView
     private lateinit var videoPlayer: ExoPlayer
@@ -161,6 +167,7 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
                 if (trimmedDuration>trimVideoOptions.maxDuration/1000){
                     Toast.makeText(this, "Video must be less than ${trimVideoOptions.maxDuration/1000} seconds", Toast.LENGTH_SHORT).show()
                 }else{
+                    cacheDir.delete()
                     transcode()
                 }
             }
@@ -411,8 +418,8 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
 
     override fun onTranscodeCanceled() {}
     override fun onTranscodeFailed(exception: Throwable) {
-        progressBar.visibility =View.GONE
-        Toast.makeText(this, if (exception.message != null) exception.message else "Some error occurred", Toast.LENGTH_SHORT).show()
+        cacheDir.delete()
+        transCode2()
         Log.e(TAG, "onTranscodeFailed: ", exception)
     }
 
@@ -455,6 +462,92 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
 
     }
 
+
+    override fun onStarted(id: String) {
+
+    }
+
+    override fun onProgress(id: String, progress: Float) {
+
+    }
+
+    override fun onCompleted(id: String, trackTransformationInfos: MutableList<TrackTransformationInfo>?, ) {
+        val fileSize = (mTranscodeOutputFile.length() / 1024).toString().toInt()
+        if (fileSize > trimVideoOptions.maxVideoSize * 1024) {
+            transCode2()
+        } else {
+            progressBar.visibility =View.GONE
+            val finalFile = File(uri.path!!)
+            mTranscodeOutputFile.copyTo(finalFile, true)
+            val intent = Intent()
+            intent.putExtra("data", finalFile.path)
+            setResult(RESULT_OK, intent)
+            if (this::alert.isInitialized && alert.isShowing){
+                alert.cancel()
+                alert.dismiss()
+            }
+            finish()
+            mediaTransformer!!.cancel("$requestId")
+            mediaTransformer!!.release()
+        }
+        Log.e(TAG, "onTranscodeCompleted: $fileSize")
+
+    }
+
+    override fun onCancelled(id: String, trackTransformationInfos: MutableList<TrackTransformationInfo>?, ) {
+
+    }
+
+    override fun onError(id: String, exception: Throwable?, trackTransformationInfos: MutableList<TrackTransformationInfo>?, ) {
+        mediaTransformer!!.cancel("$requestId")
+        mediaTransformer!!.release()
+
+        progressBar.visibility =View.GONE
+        Toast.makeText(this@TrimmerActivity, if (exception?.message != null) exception.message else "Some error occurred", Toast.LENGTH_SHORT).show()
+        Log.e(TAG, "onTranscodeFailed: ", exception)
+    }
+
+
+
+    private var mediaTransformer: MediaTransformer? = null
+    private var requestId = 0L;
+    private fun transCode2(){
+        requestId = Date().time
+        videoPlayer.playWhenReady =false
+        progressBar.visibility =View.VISIBLE
+        val uriToParse:Uri
+        val mediaRange: MediaRange
+//        for looping - to prevent trimming video from cache
+        if (count == 0) {
+            uriToParse= uri
+            mediaRange = MediaRange(lastMinValue*1000000, lastMaxValue*1000000)
+        }else {
+            uriToParse = Uri.parse(mTranscodeOutputFile.path)
+            mediaRange = MediaRange(0, totalduration*1000000)
+        }
+
+
+
+        mTranscodeOutputFile = File(cacheDir, count.toString() + "_abc.mp4")
+
+        if (mTranscodeOutputFile.length()>0){
+            mTranscodeOutputFile.delete()
+            mTranscodeOutputFile = File(cacheDir, count.toString() + "_abc.mp4")
+
+        }
+        mediaTransformer = MediaTransformer(applicationContext)
+        mediaTransformer!!.transform("$requestId",
+            uriToParse,
+            mTranscodeOutputFile.absolutePath,
+            null,
+            null,
+            this,
+            TransformationOptions.Builder().setSourceMediaRange(mediaRange).setRemoveMetadata(true).setGranularity(80).build()
+        )
+        count++
+
+    }
+
     private lateinit var alert:AlertDialog
     @Deprecated("Deprecated in Java")
     @Suppress("DEPRECATION")
@@ -478,7 +571,9 @@ class TrimmerActivity : AppCompatActivity(), TranscoderListener {
     }
 
     private fun cancelTranscoding() {
-        mTranscodeFuture!!.cancel(true)
+        mTranscodeFuture?.cancel(true)
+        mediaTransformer?.cancel("$requestId")
+        mediaTransformer?.release()
     }
 
 }
